@@ -1,5 +1,5 @@
 # output and test files
-.test/
+test/
 data/
 sqlite/
 
