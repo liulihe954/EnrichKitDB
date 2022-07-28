@@ -1,4 +1,5 @@
-# output files
+# output and test files
+.test/
 data/
 sqlite/
 
