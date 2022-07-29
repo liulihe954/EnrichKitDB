@@ -1,4 +1,5 @@
 # output and test files
+*.ipynb # usually local tests
 test/
 data/
 sqlite/
