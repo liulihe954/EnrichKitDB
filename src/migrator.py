@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from datetime import datetime
-
+from collections import defaultdict
 
 class migrator:
 
@@ -10,8 +10,98 @@ class migrator:
         self.DB_UNITS = ['go', 'interpro', 'kegg', 'mesh', 'reactome', 'msigdb']
         self.SPECIES = SPECIES
 
-    # read in everything
+    # caller
+    def migrate_tables(self):
+        ## call manipulate_tables
+        self.manipulate_tables()
+    
+    # handler
+    def manipulate_tables(self):
+        print('Now to format gtf files.....')
+        self.read_gtf()
+        print('ok...')
+        
+#         print('Now to format computated features.....')
+#         self.compute_feature()
+#         print('ok...')
 
+        print('Now to format id mapper files.....')
+        self.compose_id_mapper()
+        print('ok...')
+
+        print('Now to format db units files.....')
+        self.process_db_unit()
+        print('ok...')
+        
+        print('Now to format gene-pathway involvement files.....')
+        self.create_involve_tables()
+        print('ok...')
+        
+        #
+        id_mapper_tiny = self.id_mapper[['ek_gene_id', 'gene_id']]
+        id_mapper_tiny_no_dup = id_mapper_tiny.drop_duplicates('gene_id')
+        self.gtf_clean_genes = self.replace_id(self.gtf_clean_genes, id_mapper_tiny_no_dup)
+        self.gtf_clean_exons = self.replace_id(self.gtf_clean_exons, id_mapper_tiny_no_dup)
+        self.gtf_clean_features = self.replace_id(self.gtf_clean_features, id_mapper_tiny_no_dup)
+        
+#         #
+        self.flatten_exon()
+        
+        print('Now to format computated features.....')
+        self.compute_feature()
+        print('ok...')
+        
+        #
+        print('Now to output all tables.....')
+        if self.SPECIES == 'bta':
+            #
+            path_tmp = os.path.join(self.BASE, 'data', 'output')
+            
+            self.gtf_clean_exons['exon_number'] = self.gtf_clean_exons['exon_number'].astype('Int64')
+            self.gtf_clean_exons = self.gtf_clean_exons.drop(columns = ['seqname'])
+            self.gtf_clean_features = self.gtf_clean_features.drop(columns = ['seqname'])
+            self.gtf_clean_genes['seqname'] = self.gtf_clean_genes['seqname'].replace(['X'],30)
+            self.gtf_clean_genes['seqname'] = pd.to_numeric(self.gtf_clean_genes['seqname'], errors='coerce')
+            #self.gtf_clean_genes['seqname'].astype('Int64')
+            
+            #
+            print(f'About to output gene list with dimension {self.gtf_clean_genes.shape}')
+            self.gtf_clean_genes.to_csv(os.path.join(path_tmp, 'genes_bta.csv'), index=False, encoding='utf-8')
+            
+            #
+            print(f'About to output exon list with dimension {self.gtf_clean_exons.shape}')
+            self.gtf_clean_exons_falt.to_csv(os.path.join(path_tmp, 'exons_bta.csv'), index=False, encoding='utf-8')
+            
+            #
+            print(f'About to output feature list with dimension {self.gtf_clean_features.shape}')
+            self.gtf_clean_features.to_csv(os.path.join(path_tmp, 'features_bta.csv'), index=False, encoding='utf-8')
+            
+            
+            #
+            print(f'About to output pathway db meta list with dimension {self.pathway_meta_df.shape}')
+            self.pathway_meta_df.to_csv(os.path.join(path_tmp, 'pathway_meta_bta.csv'), index=False, encoding='utf-8')
+            
+            print(f'About to output id mapper list with dimension {self.id_mapper.shape}')
+            self.id_mapper['entrez_id'] = self.id_mapper['entrez_id'].astype('Int64')
+            self.id_mapper['human_entrez_id'] = self.id_mapper['human_entrez_id'].astype('Int64')
+            self.id_mapper.to_csv(os.path.join(path_tmp, 'id_mapper_bta.csv'), index=False, encoding='utf-8')
+            
+            
+            print(f'About to output all pathway list with dimension {self.all_pathway_after_convert.shape}')
+            self.all_pathway_after_convert.to_csv(os.path.join(path_tmp, 'pathways_bta.csv'), index=False, encoding='utf-8')
+            
+            print(f'About to output all gene-pathway involve list with dimension {self.all_involve_after_convert.shape}')
+            self.all_involve_after_convert.to_csv(os.path.join(path_tmp, 'involve_bta.csv'), index=False, encoding='utf-8')
+            
+            
+            print(f'About to output all gene-pathway involve list with dimension {self.all_involve_after_convert.shape}')
+            self.computatd_features.to_csv(os.path.join(path_tmp, 'computed_feature_bta.csv'), index=False, encoding='utf-8')
+
+        print('Done!')
+        print('')
+ 
+    ## read in everything ##
+    
     def read_gtf(self):
 
         # condition on species to figure out the right table
@@ -104,6 +194,34 @@ class migrator:
         df_final = output.drop(columns=['gene_id'])
 
         return df_final
+    
+    # helper to dedup exons
+    def flatten_exon(self):
+        exon_df = self.gtf_clean_exons.copy(deep = True)
+        exon_df = exon_df.groupby('ek_gene_id')
+        # logic here
+        print('About to flatten exons list...')
+        container = []
+        for name, group in exon_df:
+            if name % 1000 == 0:
+                print(f'flattend {name} genes...')
+            tmp_df = group
+            tmp_merger = defaultdict(list)
+            for row in tmp_df.iterrows(): 
+                tmp_transcript_exon = row[1][1]
+                tmp_transcript_collection = tmp_merger[tmp_transcript_exon]
+                tmp_transcript_item = row[1][8]
+                if not tmp_transcript_item in tmp_transcript_collection:
+                    tmp_merger[tmp_transcript_exon].append(tmp_transcript_item)
+            merger_df = pd.DataFrame(list([k,'+'.join(v)] for k,v in tmp_merger.items()), columns = ['exon_id','transcript_id'])
+            tmp_df = tmp_df.drop(['seqname','exon_number','transcript_id'], axis=1)
+            tmp_output = pd.merge(tmp_df, merger_df, how = 'left', on = 'exon_id').drop_duplicates().reset_index(drop=True)#reset_index(drop=True,)
+            
+            container.append(tmp_output)
+            
+        print('Done.')
+        
+        self.gtf_clean_exons_falt = pd.concat(container)
 
     def process_db_unit(self):
 
@@ -152,7 +270,8 @@ class migrator:
 
         self.twolist_before_convert = output
 
-    def create_tables(self):
+    def create_involve_tables(self):
+        
         # meta table
         current_time = datetime.now().strftime("%D")
         pathway_meta = [
@@ -186,7 +305,6 @@ class migrator:
         converted_involve_collection = []
 
         for index, pathway_section in enumerate(self.twolist_before_convert):
-
             tmp = pathway_section[1].drop_duplicates()
 
             if index in [0, 1]:  # 0 1 gene id
@@ -221,71 +339,75 @@ class migrator:
 
         #
         self.all_involve_after_convert = involve
-
-    def migrate_tables(self):
-        print('Now to format gtf files.....')
-        self.read_gtf()
-        print('ok...')
-
-        print('Now to formatid mapper files.....')
-        self.compose_id_mapper()
-        print('ok...')
-
-        print('Now to format db units files.....')
-        self.process_db_unit()
-        print('ok...')
-
-        print('Now to create files.....')
-        self.create_tables()
-        print('ok...')
-
+    
+    def compute_feature(self):
         #
-        id_mapper_tiny = self.id_mapper[['ek_gene_id', 'gene_id']]
-        id_mapper_tiny_no_dup = id_mapper_tiny.drop_duplicates('gene_id')
-        self.gtf_clean_genes = self.replace_id(self.gtf_clean_genes, id_mapper_tiny_no_dup)
-        self.gtf_clean_exons = self.replace_id(self.gtf_clean_exons, id_mapper_tiny_no_dup)
-        self.gtf_clean_features = self.replace_id(self.gtf_clean_features, id_mapper_tiny_no_dup)
+        exons_raw = self.gtf_clean_exons_falt.copy(deep=True)
+        exons_raw = exons_raw.groupby('ek_gene_id')
         #
-        print('Now to output all tables.....')
-        if self.SPECIES == 'bta':
+        upstream_len = downstream_len = 10000
+        donor_len = acceptor_len = 50
+        all_computed_feature = []
+        #
+        for name, group in exons_raw:
             #
-            path_tmp = os.path.join(self.BASE, 'data', 'output')
-            
-            self.gtf_clean_exons['exon_number'] = self.gtf_clean_exons['exon_number'].astype('Int64')
-            self.gtf_clean_exons = self.gtf_clean_exons.drop(columns = ['seqname'])
-            self.gtf_clean_features = self.gtf_clean_features.drop(columns = ['seqname'])
-            self.gtf_clean_genes['seqname'] = self.gtf_clean_genes['seqname'].replace(['X'],30)
-            
-            self.gtf_clean_genes['seqname'] = pd.to_numeric(self.gtf_clean_genes['seqname'], errors='coerce')
-            #self.gtf_clean_genes['seqname'].astype('Int64')
-            
+            tmp_df = group.sort_values(by=['start','end'])
             #
-            print(f'About to output gene list with dimension {self.gtf_clean_genes.shape}')
-            self.gtf_clean_genes.to_csv(os.path.join(path_tmp, 'genes_bta.csv'), index=False, encoding='utf-8')
-            
-            #
-            print(f'About to output exon list with dimension {self.gtf_clean_exons.shape}')
-            self.gtf_clean_exons.to_csv(os.path.join(path_tmp, 'exons_bta.csv'), index=False, encoding='utf-8')
-            
-            #
-            print(f'About to output feature list with dimension {self.gtf_clean_features.shape}')
-            self.gtf_clean_features.to_csv(os.path.join(path_tmp, 'features_bta.csv'), index=False, encoding='utf-8')
-            
-            
-            #
-            print(f'About to output pathway db meta list with dimension {self.pathway_meta_df.shape}')
-            self.pathway_meta_df.to_csv(os.path.join(path_tmp, 'pathway_meta_bta.csv'), index=False, encoding='utf-8')
-            
-            print(f'About to output id mapper list with dimension {self.id_mapper.shape}')
-            self.id_mapper['entrez_id'] = self.id_mapper['entrez_id'].astype('Int64')
-            self.id_mapper['human_entrez_id'] = self.id_mapper['human_entrez_id'].astype('Int64')
-            self.id_mapper.to_csv(os.path.join(path_tmp, 'id_mapper_bta.csv'), index=False, encoding='utf-8')
-            
-            
-            print(f'About to output all pathway list with dimension {self.all_pathway_after_convert.shape}')
-            self.all_pathway_after_convert.to_csv(os.path.join(path_tmp, 'pathways_bta.csv'), index=False, encoding='utf-8')
-            
-            print(f'About to output all gene-pathway involve list with dimension {self.all_involve_after_convert.shape}')
-            self.all_involve_after_convert.to_csv(os.path.join(path_tmp, 'involve_bta.csv'), index=False, encoding='utf-8')
+            if name % 1000 == 1:
+                print(f'annotated {name} genes...')
 
-        print('Done!')
+            # for each gene
+            length = len(tmp_df.index)
+            row = 0;next_row = 0
+            tmp_ek_gene_id = tmp_df.iloc[row][0]
+            #
+            tmp_compute_feature = []
+
+            tmp_compute_feature.append(['upstream',
+                                        tmp_df.iloc[row][2] - 1 - upstream_len,
+                                        tmp_df.iloc[row][2] - 1])
+            #
+            while next_row < length - 1:
+                tmp_intron_start = tmp_df.iloc[row][3] + 1
+                while tmp_df.iloc[next_row][2] - 1 <= tmp_intron_start and next_row < length - 1:
+                    next_row += 1        
+                tmp_intron_end = tmp_df.iloc[next_row][2] - 1
+                row = next_row
+
+                # logic for donor and splice
+                if tmp_intron_end - tmp_intron_start <= 2 * donor_len:
+                    tmp_compute_feature.append([
+                        'short intron',
+                        tmp_intron_start,
+                        tmp_intron_end])
+                else:
+                    # donor
+                    tmp_compute_feature.append(
+                        ['splice donor',
+                         tmp_intron_start,
+                         tmp_intron_start + donor_len])
+
+                    # intron
+                    tmp_compute_feature.append(
+                        ['intron',
+                         tmp_intron_start + donor_len + 1,
+                         tmp_intron_end - donor_len - 1])
+
+                    # acceptor
+                    tmp_compute_feature.append(
+                        ['splice acceptor',
+                         tmp_intron_end - donor_len,
+                         tmp_intron_end]) 
+            tmp_compute_feature.append(
+                ['downstream',
+                 tmp_df.iloc[length-1][3] + 1,
+                 tmp_df.iloc[length-1][3] + 1 + upstream_len])    
+            
+            tmp_out = pd.DataFrame(tmp_compute_feature, columns = ['feature','start','end'])
+            tmp_out['ek_gene_id'] = tmp_ek_gene_id
+            first_col = tmp_out.pop('ek_gene_id')
+            tmp_out.insert(0, "ek_gene_id", first_col)
+            all_computed_feature.append(tmp_out)
+
+        # output
+        self.computatd_features = pd.concat(all_computed_feature)

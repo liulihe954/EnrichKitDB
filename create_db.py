@@ -50,7 +50,7 @@ if UPDATE:
 print("--------------------------------")
 print("PARSING CURRENT VERSION RAW DATA")
 print("--------------------------------")
-current.parse()
+# current.parse()
 print('DONE!\n')
 print("------------------------------\n\n")
 
