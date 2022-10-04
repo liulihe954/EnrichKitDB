@@ -5,7 +5,7 @@ from workflow.steps import work_flow
 # Create structure
 BASE = os.getcwd()
 
-SPECIES = 'bta'
+SPECIES = ['sus']
 units = ['annotation', 'id_mapper', 'go', 'kegg', 'interpro', 'mesh', 'reactome', 'msigdb']
 
 path_list = [
@@ -15,7 +15,7 @@ path_list = [
 
 path_list.extend([os.path.join(path_list[1], 'raw', x) for x in units])
 path_list.extend([os.path.join(path_list[1], 'tmp', x) for x in units])
-path_list.extend([os.path.join(path_list[1],'output')])
+path_list.extend([os.path.join(path_list[1], 'output')])
 print(f'Now try to create {len(path_list)} paths for the DB...')
 print()
 for item in path_list:
@@ -25,8 +25,6 @@ for item in path_list:
     else:
         print(f'{item} already exists.')
 print()
-
-
 
 
 print("--------------------------------")
@@ -42,11 +40,11 @@ if UPDATE:
     print("--------------------------------")
     print("  DOWNLOADING FILES FROM SOURCE ")
     print("--------------------------------")
-    current.download()
+    # current.download()
     print('DONE!\n')
     print("------------------------------\n\n")
-    
-#2. parse raw data and generate priliminary tables
+
+# 2. parse raw data and generate priliminary tables
 print("--------------------------------")
 print("PARSING CURRENT VERSION RAW DATA")
 print("--------------------------------")

@@ -1,5 +1,6 @@
 import os
 
+
 class downloader():
     #
     def __init__(self, RAW_DATA_INFO, UPDATE, BASE):
@@ -7,14 +8,13 @@ class downloader():
         self.RAW_DATA_INFO = RAW_DATA_INFO
         self.UPDATE = UPDATE
         self.BASE = BASE
-        
-        
+
     def download_raw(self):
         #
         if self.UPDATE:
             for path, collection in self.RAW_DATA_INFO.items():
                 #
-                tmp_file_destination = os.path.join(self.BASE,'data','raw', path)
+                tmp_file_destination = os.path.join(self.BASE, 'data', 'raw', path)
                 #
                 for file_name, url in collection.items():
                     #
