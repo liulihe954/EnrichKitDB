@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import numpy as np
 from datetime import datetime
 
 
@@ -11,10 +12,10 @@ class migrator:
         self.SPECIES_DICT = {
             'bta': [0, 'Bos_taurus', 'ARS-UCD1.2.107'],
             'cap': [1, 'Capra_hircus', 'ARS1.107'],
-            'ovi': [2, 'Ovis_aries', 'Oar_v3.1.107'],
+            'equ': [2, 'Equus_caballus', 'EquCab3.0.107'],
             'gal': [3, 'Gallus_gallus', 'gca000002315v5.GRCg6a.107'],
-            'sus': [4, 'Sus_scrofa', 'Sscrofa11.1.107'],
-            'equ': [5, 'Equus_caballus', 'EquCab3.0.107'], }
+            'ovi': [4, 'Ovis_aries', 'Oar_v3.1.107'],
+            'sus': [5, 'Sus_scrofa', 'Sscrofa11.1.107'], }
 
     def generate_tables(self):
         self.do_migrate()
@@ -46,6 +47,7 @@ class migrator:
 
         print('Now writing involve.txt')
         self.all_involve.to_csv(os.path.join(output_path, 'involve.txt'), index=False)
+        self.all_involve_msigdb.to_csv(os.path.join(output_path, 'involve_msigdb.txt'), index=False)
 
     def do_migrate(self):
         print('About to compose species table.')
@@ -88,12 +90,12 @@ class migrator:
         all_species_table = pd.DataFrame([
             [0, 'bta', 'Bos_taurus', 'ARS-UCD1.2.107'],
             [1, 'cap', 'Capra_hircus', 'ARS1.107'],
-            [2, 'ovi', 'Ovis_aries', 'Oar_v3.1.107'],
+            [2, 'equ', 'Equus_caballus', 'EquCab3.0.107'],
             [3, 'gal', 'Gallus_gallus', 'gca000002315v5.GRCg6a.107'],
-            [4, 'sus', 'Sus_scrofa', 'Sscrofa11.1.107'],
-            [5, 'equ', 'Equus_caballus', 'EquCab3.0.107'],
+            [4, 'ovi', 'Ovis_aries', 'Oar_v3.1.107'],
+            [5, 'sus', 'Sus_scrofa', 'Sscrofa11.1.107'],
         ])
-        all_species_table.columns = ['name_short', 'ek_species', 'name_long', 'current_gtf']
+        all_species_table.columns = ['ek_species', 'name_short', 'name_long', 'current_gtf']
 
         # mark
         self.all_species_table = all_species_table
@@ -101,9 +103,12 @@ class migrator:
     def compose_id_mapper(self):
         input_path = os.path.join(self.BASE, 'data', 'tmp', 'id_mapper')
         id_mapper_all_updated = pd.read_csv(os.path.join(input_path, 'id_mapper_all_updated.txt'), low_memory=False)
-
+        id_mapper_all_updated.fillna(-1, inplace=True)
+        id_mapper_all_updated['entrez_id'] = id_mapper_all_updated['entrez_id'].astype(int)
+        id_mapper_all_updated['human_entrez_id'].replace('None', -1, inplace=True)
+        id_mapper_all_updated['human_entrez_id'] = id_mapper_all_updated['human_entrez_id'].astype(float)
+        id_mapper_all_updated['human_entrez_id'] = id_mapper_all_updated['human_entrez_id'].astype(int)
         id_mapper_all_updated.pop('Unnamed: 0')
-        id_mapper_all_updated.fillna('')
         id_mapper_all_updated = id_mapper_all_updated.sort_values(by=['species', 'gene_id'])
         id_mapper_all_updated.reset_index(drop=True, inplace=True)
         id_mapper_all_updated['ek_gene_id'] = id_mapper_all_updated.index
@@ -115,6 +120,8 @@ class migrator:
         # id_mapper_all_updated = id_mapper_all_updated.astype({'human_entrez_id': float})
         # id_mapper_all_updated = id_mapper_all_updated.astype({'human_entrez_id': int})
         # id_mapper_all_updated = id_mapper_all_updated.astype({'human_entrez_id': str})
+        id_mapper_all_updated.astype(str)
+        id_mapper_all_updated.replace(-1, '', inplace=True)
 
         id_mapper_all_updated = id_mapper_all_updated[['ek_gene_id', 'gene_id', 'ensembl_symbol', 'entrez_id', 'ncbi_symbol', 'vgnc_id', 'vgnc_symbol', 'hgnc_orthologs', 'human_gene_id', 'human_entrez_id', 'hgnc_symbol', 'species']]
 
@@ -247,8 +254,9 @@ class migrator:
             pathways_dir_path = os.path.join(self.BASE, 'data', 'tmp', db)
             involve_list = os.listdir(pathways_dir_path)
             if db == 'msigdb':
-                tmp_tuple = ['all', db, all_db_id_type[db], current_time]
-                out.append(tmp_tuple)
+                for species in self.SPECIES_DICT.keys():
+                    tmp_tuple = [species, db, all_db_id_type[db], current_time]
+                    out.append(tmp_tuple)
             else:
                 for species_involve in involve_list:
                     if species_involve.endswith('_involve.txt'):
@@ -302,7 +310,6 @@ class migrator:
 
     def compose_involve(self):
         out = []
-
         self.id_mapper_all_updated = self.id_mapper_all_updated.astype(str)
         for db in self.DB_UNITS:
             print('Formatting involve information for: {}...'.format(db))
@@ -327,8 +334,27 @@ class migrator:
                                             how='left',
                                             on='pathway_id')
                         out_tmp = tmp_df_2[['ek_gene_id', 'ek_pathway_id']]
-                        # print('out_tmp - ', out_tmp.head)
-                        out.append(out_tmp)
+
+                        box = out_tmp
+                        box['ek_gene_id'] = box['ek_gene_id'].astype(int)
+                        for species_tmp in self.SPECIES_DICT.keys():
+                            print('Getting gene id for msigdb for species - ', species_tmp)
+                            ek_species_tmp = self.all_species_table.loc[self.all_species_table.name_short == species_tmp]['ek_species'].values[0]
+                            species_mapper_tmp = self.id_mapper_all_updated.loc[self.id_mapper_all_updated.species == str(ek_species_tmp)]
+                            t = species_mapper_tmp[['gene_id', 'human_entrez_id']].drop_duplicates()
+                            t.replace('', np.nan, inplace=True)
+                            tmp_mapper = t.dropna()
+                            tmp_mapper['human_entrez_id'] = tmp_mapper['human_entrez_id'].astype(int)
+                            mapping = {tmp_mapper.columns[0]: species_tmp}
+                            tmp_mapper = tmp_mapper.rename(columns=mapping)
+                            involve_list_raw_merge = pd.merge(box, tmp_mapper, how='left', left_on='ek_gene_id', right_on='human_entrez_id')
+                            involve_list_raw_merge.pop('human_entrez_id')
+                            box = involve_list_raw_merge
+                        #
+                        all_involve_msigdb = box
+                        all_involve_msigdb = all_involve_msigdb.rename(columns={all_involve_msigdb.columns[0]: 'human_entrez_id'})
+                        all_involve_msigdb.reset_index(drop=True, inplace=True)
+
                 next
             else:
                 for involve in pathway_involve_list:
@@ -342,10 +368,6 @@ class migrator:
                         id_type = self.pathway_meta.loc[(self.pathway_meta.name == tmp_db) & (self.pathway_meta.species == tmp_species)]['id_type'].values[0]
 
                         mapper_tmp = self.id_mapper_all_updated[['ek_gene_id', id_type]].dropna().drop_duplicates()
-                        if id_type == 'entrez_id':
-                            mapper_tmp = mapper_tmp.astype({id_type: float})
-                            mapper_tmp = mapper_tmp.dropna().astype({id_type: int})
-                            mapper_tmp = mapper_tmp.astype({id_type: str})
 
                         tmp_df_1 = pd.merge(tmp_df, mapper_tmp,
                                             how='left',
@@ -365,3 +387,4 @@ class migrator:
 
         # mark
         self.all_involve = all_involve
+        self.all_involve_msigdb = all_involve_msigdb
