@@ -70,14 +70,14 @@ class full_scale_parser():
             input_path = os.path.join(source_path, item)
 
             # parse
-            # tmp = gtf_parser(input_path).dataframe()
+            tmp = gtf_parser(input_path).dataframe()
 
             # split and format
-            # spl = gtf_splitter(self.BASE, species_tmp, tmp)
+            spl = gtf_splitter(self.BASE, species_tmp, tmp)
 
-            # tmp_skinny = spl.migrate_tables()
+            tmp_skinny = spl.migrate_tables()
 
-            tmp_skinny = pd.read_csv(os.path.join(self.BASE, 'data', 'tmp', 'annotation', ''.join(['genes_', species_tmp, '.csv'])))
+#             tmp_skinny = pd.read_csv(os.path.join(self.BASE, 'data', 'tmp', 'annotation', ''.join(['genes_', species_tmp, '.csv'])))
 
             # output id mapper
             print('About to compose id mapper for ' + species_tmp)
