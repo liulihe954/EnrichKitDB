@@ -32,7 +32,7 @@ class work_flow():
     def parse(self):
         #
         p = full_scale_parser(self.BASE)
-
+        p.do_parse()
         # can also do single work
         #   .parse_gtf() .parse_id_mapper()
         #   .parse_go()  .parse_interpro()
@@ -40,7 +40,7 @@ class work_flow():
         #   .parse_mesh()  .parse_msigdb()
         # p.parse_reactome()
         # p.parse_id_mapper()  # combinded
-        p.parse_kegg()
+        # p.parse_kegg()
 
     def migrate(self):
         #

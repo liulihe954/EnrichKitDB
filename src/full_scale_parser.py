@@ -297,7 +297,7 @@ class full_scale_parser():
                     for line in f:
                         tmp = line.rstrip().split('\t')
                         kegg_pathway_list.append([
-                            tmp[0].split(':')[1],
+                            tmp[0],
                             tmp[1]
                         ])
                     #
