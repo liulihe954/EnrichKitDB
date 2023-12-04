@@ -74,5 +74,5 @@ print(" Create a portable sqlite database")
 print("----------------------------------")
 # current.populate()
 print('DONE!\n')
-print("------------------------------\n\n")e
+print("------------------------------\n\n")
 

@@ -139,6 +139,8 @@ class migrator:
         for i, updated_row in enumerate(results):
             self.id_mapper_all_raw.iloc[i] = updated_row
         
+        # write to csv in case other issue happen
+        self.id_mapper_all_updated.to_csv(os.path.join(self.BASE,'data', 'tmp', 'id_mapper', 'id_mapper_all_updated.txt'), index=False)
         # for index, row in self.id_mapper_all_raw.iterrows():
         #     print('manual_check_id for ' + str(index))
         #     # Perform the checks and updates as per your original logic here
@@ -159,13 +161,13 @@ class migrator:
         self.manual_check_id()
 
         ##
-        id_mapper_all_updated = self.id_mapper_all_raw # pd.read_csv(os.path.join(input_path, 'id_mapper_all_updated.txt'), low_memory=False)
+        id_mapper_all_updated = pd.read_csv(os.path.join(self.BASE,'data', 'tmp', 'id_mapper', 'id_mapper_all_updated.txt'), low_memory=False)
         id_mapper_all_updated.fillna(-1, inplace=True)
         id_mapper_all_updated['entrez_id'] = id_mapper_all_updated['entrez_id'].astype(int)
         id_mapper_all_updated['human_entrez_id'].replace('None', -1, inplace=True)
         id_mapper_all_updated['human_entrez_id'] = id_mapper_all_updated['human_entrez_id'].astype(float)
         id_mapper_all_updated['human_entrez_id'] = id_mapper_all_updated['human_entrez_id'].astype(int)
-        id_mapper_all_updated.pop('Unnamed: 0')
+        # id_mapper_all_updated.pop('Unnamed: 0')
         id_mapper_all_updated = id_mapper_all_updated.sort_values(by=['species', 'gene_id'])
         id_mapper_all_updated.reset_index(drop=True, inplace=True)
         id_mapper_all_updated['ek_gene_id'] = id_mapper_all_updated.index
