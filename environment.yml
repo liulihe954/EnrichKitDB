@@ -1,0 +1,13 @@
+name: enrichkitdb
+channels:
+  - defaults
+dependencies:
+  - python=3.12
+  - pandas
+  - numpy
+  - requests
+  - certifi
+  - glob2
+  - xmltodict
+  - lxml
+  - pip

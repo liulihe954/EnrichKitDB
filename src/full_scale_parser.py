@@ -84,7 +84,7 @@ class full_scale_parser():
 
             self.compose_id_mapper(species_tmp, tmp_skinny)
 
-            print('Compose id mapper for ' + species_tmp, + ' done!')
+            print('Compose id mapper for ' + species_tmp + ' done!')
 
     def compose_id_mapper(self, species, gtf_skinny):
 
