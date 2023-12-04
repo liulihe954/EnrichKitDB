@@ -1,4 +1,4 @@
-UPDATE = True
+UPDATE = False
 
 RAW_DATA_INFO = {
 
@@ -136,5 +136,10 @@ RAW_DATA_INFO = {
     # msigdb gene sets
     'msigdb': {
         'msigdb_v7.5.1.xml': 'https://data.broadinstitute.org/gsea-msigdb/msigdb/release/7.5.1/msigdb_v7.5.1.xml',
+    },
+
+    # tftargets
+    'tftargets':{
+        'tftargets.rda':'https://github.com/slowkow/tftargets/raw/master/data/tftargets.rda',
     }
 }

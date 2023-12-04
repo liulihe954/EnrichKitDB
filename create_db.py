@@ -6,7 +6,7 @@ from workflow.steps import work_flow
 BASE = os.getcwd()
 
 SPECIES = ['sus']
-units = ['annotation', 'id_mapper', 'go', 'kegg', 'interpro', 'mesh', 'reactome', 'msigdb']
+units = ['annotation', 'id_mapper', 'go', 'kegg', 'interpro', 'mesh', 'reactome', 'msigdb','tftargets']
 
 path_list = [
     os.path.join(BASE, 'sqlite'),
@@ -48,7 +48,7 @@ if UPDATE:
 print("--------------------------------")
 print("PARSING CURRENT VERSION RAW DATA")
 print("--------------------------------")
-current.parse()
+# current.parse()
 print('DONE!\n')
 print("------------------------------\n\n")
 
@@ -57,6 +57,14 @@ print("--------------------------------")
 print("    GENERATING DATABASE SCHEMA  ")
 print("--------------------------------")
 current.migrate()
+print('DONE!\n')
+print("------------------------------\n\n")
+
+# 4. process tf targets
+print("--------------------------------")
+print("    PROCESSING TFTARGETS        ")
+print("--------------------------------")
+# current.tftarget()
 print('DONE!\n')
 print("------------------------------\n\n")
 

@@ -2,7 +2,8 @@ import os
 import pandas as pd
 import numpy as np
 from datetime import datetime
-
+import glob2
+from src.update_id_mapper_row import update_row
 
 class migrator:
 
@@ -100,9 +101,51 @@ class migrator:
         # mark
         self.all_species_table = all_species_table
 
-    def compose_id_mapper(self):
+    def manual_check_id(self):
+
+        # define paths
         input_path = os.path.join(self.BASE, 'data', 'tmp', 'id_mapper')
-        id_mapper_all_updated = pd.read_csv(os.path.join(input_path, 'id_mapper_all_updated.txt'), low_memory=False)
+        files_to_concatenate = glob2.glob(os.path.join(input_path, 'id_mapper_*.txt'))
+        
+        # compose a full id_mapper_pre_check
+        all_id_mapper_df = []
+        for file in files_to_concatenate:
+            df = pd.read_csv(file, engine='python')
+            all_id_mapper_df.append(df)
+        if not all_id_mapper_df:
+            print("No files to process.")
+        
+        #
+        self.id_mapper_all_raw = pd.concat(all_id_mapper_df, ignore_index=True)
+        self.id_mapper_all_raw.astype(str)
+
+        # do manual check then output a "id_mapper_all_updated.txt"
+        # In-place Check and Update for Each Row
+
+        for index, row in self.id_mapper_all_raw.iterrows():
+            print('manual_check_id for ' + str(index))
+            # Perform the checks and updates as per your original logic here
+            updated_row = update_row(row)
+
+            # If 'gene_id' is not missing, do nothing
+            if not pd.isna(row['gene_id']):
+                pass
+
+            # Update the row in the DataFrame
+            self.id_mapper_all_raw.loc[index] = updated_row
+
+        # Step 4: Output the Updated DataFrame to a Single CSV File
+        # self.id_mapper_all_raw.to_csv('id_mapper_all_updated.txt', index=False, encoding='utf-8')
+
+
+    def compose_id_mapper(self):
+        # input_path = os.path.join(self.BASE, 'data', 'tmp', 'id_mapper')
+
+        ## check id to generate id_mapper_all_updated.txt
+        self.manual_check_id()
+
+        ##
+        id_mapper_all_updated = self.id_mapper_all_raw # pd.read_csv(os.path.join(input_path, 'id_mapper_all_updated.txt'), low_memory=False)
         id_mapper_all_updated.fillna(-1, inplace=True)
         id_mapper_all_updated['entrez_id'] = id_mapper_all_updated['entrez_id'].astype(int)
         id_mapper_all_updated['human_entrez_id'].replace('None', -1, inplace=True)

@@ -84,6 +84,8 @@ class full_scale_parser():
 
             self.compose_id_mapper(species_tmp, tmp_skinny)
 
+            print('Compose id mapper for ' + species_tmp, + ' done!')
+
     def compose_id_mapper(self, species, gtf_skinny):
 
         # all source paths
@@ -401,8 +403,10 @@ class full_scale_parser():
                     'CATEGORY_CODE', 'SUB_CATEGORY_CODE', 'CONTRIBUTOR', 'CONTRIBUTOR_ORG',
                     'DESCRIPTION_BRIEF', 'MEMBERS_EZID', 'DESCRIPTION_FULL']
             convert = [{attrib: xe.attrib[attrib] for attrib in cols} for xe in root]
+        
             df = pd.DataFrame(columns=cols)
-            df = df.append(convert, ignore_index=True)[['SYSTEMATIC_NAME', 'DESCRIPTION_BRIEF', 'MEMBERS_EZID']]
+            df = pd.concat([df, pd.DataFrame(convert)], ignore_index=True)[['SYSTEMATIC_NAME', 'DESCRIPTION_BRIEF', 'MEMBERS_EZID']]
+            # df = df.append(convert, ignore_index=True)[['SYSTEMATIC_NAME', 'DESCRIPTION_BRIEF', 'MEMBERS_EZID']]
 
             # post process
             # 1. pathway id + pathway decription
