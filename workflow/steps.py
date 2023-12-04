@@ -3,6 +3,7 @@ from src.download import downloader
 from src.full_scale_parser import full_scale_parser
 from src.migrator import migrator
 from src.tftargets import tftarget
+from src.sqlite3 import create_sqlite
 
 
 # parse
@@ -60,5 +61,7 @@ class work_flow():
         t.process_data_R()
         t.process_data_py()
         
-    def populate():
-        pass
+    def populate(self):
+        sqlite = create_sqlite(self.BASE,'EnrichKitDB.sqlite')
+        sqlite.create_tables()
+        sqlite.load_all_tables()

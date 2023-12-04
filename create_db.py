@@ -68,5 +68,11 @@ print("--------------------------------")
 print('DONE!\n')
 print("------------------------------\n\n")
 
-# 4. insert into sqlite and generate portable instance
+# 5. process tf targets
+print("----------------------------------")
+print(" Create a portable sqlite database")
+print("----------------------------------")
 # current.populate()
+print('DONE!\n')
+print("------------------------------\n\n")e
+
