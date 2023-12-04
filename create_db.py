@@ -1,5 +1,5 @@
 import os
-from config import RAW_DATA_INFO, UPDATE
+from config import RAW_DATA_INFO, UPDATE, MAX_THREADS
 from workflow.steps import work_flow
 
 # Create structure
@@ -30,7 +30,7 @@ print()
 print("--------------------------------")
 print("  INITIALIZING A NEW WORK FLOW  ")
 print("--------------------------------")
-current = work_flow(RAW_DATA_INFO, UPDATE, BASE, SPECIES)
+current = work_flow(RAW_DATA_INFO, UPDATE, BASE, SPECIES, MAX_THREADS)
 
 print('DONE!')
 print("------------------------------\n\n")

@@ -4,11 +4,12 @@ import numpy as np
 from datetime import datetime
 import glob2
 from src.update_id_mapper_row import update_row
+import concurrent.futures
 
 class migrator:
-
-    def __init__(self, BASE):
+    def __init__(self, BASE, max_threads):
         self.BASE = BASE
+        self.max_threads = max_threads - 1
         self.DB_UNITS = ['msigdb', 'go', 'interpro', 'kegg', 'mesh', 'reactome']
         self.SPECIES_DICT = {
             'bta': [0, 'Bos_taurus', 'ARS-UCD1.2.107'],
@@ -101,6 +102,12 @@ class migrator:
         # mark
         self.all_species_table = all_species_table
 
+    def process_row(self, row):
+        # Wrapper for processing a single row
+        # This can include print statements or additional logic
+        print(f'Processing row with gene_id: {row.get("gene_id", "N/A")}')
+        return update_row(row)
+    
     def manual_check_id(self):
 
         # define paths
@@ -119,24 +126,31 @@ class migrator:
         self.id_mapper_all_raw = pd.concat(all_id_mapper_df, ignore_index=True)
         self.id_mapper_all_raw.astype(str)
 
-        # do manual check then output a "id_mapper_all_updated.txt"
-        # In-place Check and Update for Each Row
+        # do manual check then output a "id_mapper_all_updated.txt" (In-place Check)
+        
+        # Convert DataFrame to list of dictionaries for parallel processing
+        rows = self.id_mapper_all_raw.to_dict(orient='records')
+        # threads pool
+        with concurrent.futures.ThreadPoolExecutor(max_workers=self.max_threads) as executor:
+            # Submit all rows for processing
+            results = executor.map(self.process_row, rows)
 
-        for index, row in self.id_mapper_all_raw.iterrows():
-            print('manual_check_id for ' + str(index))
-            # Perform the checks and updates as per your original logic here
-            updated_row = update_row(row)
+        # Updating the DataFrame with the results
+        for i, updated_row in enumerate(results):
+            self.id_mapper_all_raw.iloc[i] = updated_row
+        
+        # for index, row in self.id_mapper_all_raw.iterrows():
+        #     print('manual_check_id for ' + str(index))
+        #     # Perform the checks and updates as per your original logic here
+        #     updated_row = update_row(row)
 
-            # If 'gene_id' is not missing, do nothing
-            if not pd.isna(row['gene_id']):
-                pass
+        #     # If 'gene_id' is not missing, do nothing
+        #     if not pd.isna(row['gene_id']):
+        #         pass
 
-            # Update the row in the DataFrame
-            self.id_mapper_all_raw.loc[index] = updated_row
-
-        # Step 4: Output the Updated DataFrame to a Single CSV File
-        # self.id_mapper_all_raw.to_csv('id_mapper_all_updated.txt', index=False, encoding='utf-8')
-
+        #     # Update the row in the DataFrame
+        #     self.id_mapper_all_raw.loc[index] = updated_row
+        # Process rows in parallel using ThreadPoolExecutor
 
     def compose_id_mapper(self):
         # input_path = os.path.join(self.BASE, 'data', 'tmp', 'id_mapper')

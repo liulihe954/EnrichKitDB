@@ -1,4 +1,5 @@
 UPDATE = False
+MAX_THREADS = 64
 
 RAW_DATA_INFO = {
 

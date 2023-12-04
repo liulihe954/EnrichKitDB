@@ -17,12 +17,13 @@ from src.tftargets import tftarget
 
 class work_flow():
 
-    def __init__(self, RAW_DATA_INFO, UPDATE, BASE, SPECIES):
+    def __init__(self, RAW_DATA_INFO, UPDATE, BASE, SPECIES, MAX_THREADS):
         #
         self.RAW_DATA_INFO = RAW_DATA_INFO
         self.UPDATE = UPDATE
         self.BASE = BASE
         self.SPECIES = SPECIES
+        self.MAX_THREADS = MAX_THREADS
 
     def download(self):
         #
@@ -49,10 +50,12 @@ class work_flow():
         #   .parse_kegg()
 
     def migrate(self):
-        m = migrator(self.BASE)
+        #
+        m = migrator(self.BASE, self.MAX_THREADS)
         m.generate_tables()
 
     def tftarget(self):  
+        #
         t = tftarget(self.BASE)
         t.process_data_R()
         t.process_data_py()
