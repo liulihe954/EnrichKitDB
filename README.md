@@ -1,10 +1,12 @@
 ## EnrichKit DB
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10257552.svg)](https://doi.org/10.5281/zenodo.10257552)
+
 ### Introduction
 
 This repo contains codes for the data curation pipeline for [EnrichKit](https://github.com/liulihe954/EnrichKitWeb). We collected publicly available data set to form a portable sqlite object. Following is the database schema:
 
-![Database Schema](https://drive.google.com/file/d/1r7kSVSGNPQuF2rNO236ttaYnwYilhHl6/view?usp=sharing)
+![Database Schema](_image/EnrichKitDB_diagram.png)
 
 The sqlite object is available to download via [Zenodo](https://doi.org/10.5281/zenodo.10257552).
 

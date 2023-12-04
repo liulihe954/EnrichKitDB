@@ -140,7 +140,7 @@ class migrator:
             self.id_mapper_all_raw.iloc[i] = updated_row
         
         # write to csv in case other issue happen
-        self.id_mapper_all_updated.to_csv(os.path.join(self.BASE,'data', 'tmp', 'id_mapper', 'id_mapper_all_updated.txt'), index=False)
+        self.id_mapper_all_raw.to_csv(os.path.join(self.BASE,'data', 'tmp', 'id_mapper', 'id_mapper_all_updated.txt'), index=False)
         # for index, row in self.id_mapper_all_raw.iterrows():
         #     print('manual_check_id for ' + str(index))
         #     # Perform the checks and updates as per your original logic here
