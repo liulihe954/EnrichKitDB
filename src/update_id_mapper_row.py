@@ -187,7 +187,10 @@ def human_from_symbol_2entrez(human_symbol):
     return returned_entrez_id, returned_ens_id
 
 
-def update_row(row):
+def update_row(input_row):
+    # convert to series
+    row = pd.Series(input_row)
+
     if row.isna().sum() == 0:
         print(row['gene_id'], ' is complete.')
     else:
@@ -245,4 +248,4 @@ def update_row(row):
             except Exception:
                 pass
 
-    return row
+    return row.to_dict()
