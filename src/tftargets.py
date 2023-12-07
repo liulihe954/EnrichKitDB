@@ -5,7 +5,7 @@ import os
 class tftarget:
     def __init__(self, BASE):
         self.BASE = BASE
-        self.preprocess_r_path = os.path.join(BASE, 'data', 'raw','tftargets','process_tf_enrichkit.R')
+        self.preprocess_r_path = os.path.join(BASE, 'src', 'process_tf_enrichkit.R')
         self.input_path = os.path.join(BASE, 'data', 'tmp','tftargets','tftargets.csv')
         self.output_path = os.path.join(BASE, 'data', 'output','tf_targets.txt')
         self.hgnc_path = os.path.join(BASE, 'data', 'raw','id_mapper','hgnc_protein_coding_gene.txt')
