@@ -28,7 +28,15 @@ class create_sqlite:
             "CREATE TABLE Pathway (ek_pathway_id INTEGER PRIMARY KEY, pathway_id TEXT, pathway_description TEXT, pathway_meta INTEGER, FOREIGN KEY(pathway_meta) REFERENCES Pathway_Meta(pathway_meta_id));",
             "CREATE TABLE Involve (ek_gene_id INTEGER, ek_pathway_id INTEGER, FOREIGN KEY(ek_gene_id) REFERENCES ID_Mapper(ek_gene_id), FOREIGN KEY(ek_pathway_id) REFERENCES Pathway(ek_pathway_id));",
             "CREATE TABLE InvolveM (human_entrez_id INTEGER, ek_pathway_id INTEGER, bta TEXT, cap TEXT, equ TEXT, gal TEXT, ovi TEXT, sus TEXT, FOREIGN KEY(ek_pathway_id) REFERENCES Pathway(ek_pathway_id));",
-            "CREATE TABLE TF_Gene (source TEXT, TF TEXT, Gene TEXT);"
+            "CREATE TABLE TF_Gene (source TEXT, TF TEXT, Gene TEXT);",
+            "CREATE INDEX idx_gene_start ON Gene(start);",
+            "CREATE INDEX idx_gene_end ON Gene(end);",
+            "CREATE INDEX idx_exon_start ON Exon(start);",
+            "CREATE INDEX idx_exon_end ON Exon(end);",
+            "CREATE INDEX idx_computedfeatures_start ON ComputedFeatures(start);",
+            "CREATE INDEX idx_computedfeatures_end ON ComputedFeatures(end);",
+            "CREATE INDEX idx_feature_start ON Feature(start);",
+            "CREATE INDEX idx_feature_end ON Feature(end);"
             ]
     def create_tables(self):
         if not os.path.exists(self.df_path):
