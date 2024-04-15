@@ -155,6 +155,7 @@ class gtf_splitter():
 
         #
         upstream_len = downstream_len = 10000
+        tss_len = 200
         donor_len = acceptor_len = 50
         all_computed_feature = []
         #
@@ -180,6 +181,13 @@ class gtf_splitter():
             tmp_compute_feature.append([tmp_gene_id,
                                         'upstream',
                                         tmp_df.iloc[row][2] - 1 - upstream_len,
+                                        tmp_df.iloc[row][2] - 1,
+                                        tmp_gene_type,
+                                        tmp_gene_strand])
+
+            tmp_compute_feature.append([tmp_gene_id,
+                                        'TSS',
+                                        tmp_df.iloc[row][2] - 1 - tss_len,
                                         tmp_df.iloc[row][2] - 1,
                                         tmp_gene_type,
                                         tmp_gene_strand])
