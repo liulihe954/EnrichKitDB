@@ -1,4 +1,5 @@
-UPDATE = False
+UPDATE = True
+CHECK_WEB = True
 MAX_THREADS = 64
 
 RAW_DATA_INFO = {
@@ -6,17 +7,28 @@ RAW_DATA_INFO = {
     # genome annotation (ensembl)
     'annotation': {
         # Cow -  Bos taurus
-        'Bos_taurus.ARS-UCD1.2.107.gtf.gz': "http://ftp.ensembl.org/pub/release-107/gtf/bos_taurus/Bos_taurus.ARS-UCD1.2.107.gtf.gz",
+        # 'Bos_taurus.ARS-UCD1.2.107.gtf.gz': "http://ftp.ensembl.org/pub/release-107/gtf/bos_taurus/Bos_taurus.ARS-UCD1.2.107.gtf.gz",
+        'Bos_taurus.ARS-UCD1.3.113.gtf.gz': "http://ftp.ensembl.org/pub/release-113/gtf/bos_taurus/Bos_taurus.ARS-UCD1.3.113.gtf.gz",
+
         # Goat - Capra hircus
-        'Capra_hircus.ARS1.107.gtf.gz': "http://ftp.ensembl.org/pub/release-107/gtf/capra_hircus/Capra_hircus.ARS1.107.gtf.gz",
+        # 'Capra_hircus.ARS1.107.gtf.gz': "http://ftp.ensembl.org/pub/release-107/gtf/capra_hircus/Capra_hircus.ARS1.107.gtf.gz",
+        'Capra_hircus.ARS1.113.gtf.gz': "http://ftp.ensembl.org/pub/release-113/gtf/capra_hircus/Capra_hircus.ARS1.113.gtf.gz",
+
         # Sheep - Ovis aries
-        'Ovis_aries.Oar_v3.1.107.gtf.gz': "http://ftp.ensembl.org/pub/release-107/gtf/ovis_aries/Ovis_aries.Oar_v3.1.107.gtf.gz",
+        # 'Ovis_aries.Oar_v3.1.107.gtf.gz': "http://ftp.ensembl.org/pub/release-107/gtf/ovis_aries/Ovis_aries.Oar_v3.1.107.gtf.gz",
+        'Ovis_aries_rambouillet.ARS-UI_Ramb_v2.0.113.gtf.gz': "http://ftp.ensembl.org/pub/release-113/gtf/ovis_aries_rambouillet/Ovis_aries_rambouillet.ARS-UI_Ramb_v2.0.113.gtf.gz",
+
         # Chicken - Gallus gallus
-        'Gallus_gallus_gca000002315v5.GRCg6a.107.gtf.gz': "http://ftp.ensembl.org/pub/release-107/gtf/gallus_gallus_gca000002315v5/Gallus_gallus_gca000002315v5.GRCg6a.107.gtf.gz",
+        # 'Gallus_gallus_gca000002315v5.GRCg6a.107.gtf.gz': "http://ftp.ensembl.org/pub/release-107/gtf/gallus_gallus_gca000002315v5/Gallus_gallus_gca000002315v5.GRCg6a.107.gtf.gz",
+        'Gallus_gallus.bGalGal1.mat.broiler.GRCg7b.113.gtf.gz': "https://ftp.ensembl.org/pub/release-113/gtf/gallus_gallus/Gallus_gallus.bGalGal1.mat.broiler.GRCg7b.113.gtf.gz",
+
         # Pig - Duroc - Sus scrofa
-        'Sus_scrofa.Sscrofa11.1.107.gtf.gz': "http://ftp.ensembl.org/pub/release-107/gtf/sus_scrofa/Sus_scrofa.Sscrofa11.1.107.gtf.gz",
+        # 'Sus_scrofa.Sscrofa11.1.107.gtf.gz': "http://ftp.ensembl.org/pub/release-107/gtf/sus_scrofa/Sus_scrofa.Sscrofa11.1.107.gtf.gz",
+        'Sus_scrofa.Sscrofa11.1.113.gtf.gz': "https://ftp.ensembl.org/pub/release-113/gtf/sus_scrofa/Sus_scrofa.Sscrofa11.1.113.gtf.gz",
+
         # Horse Equus caballus
-        'Equus_caballus.EquCab3.0.107.gtf.gz': "http://ftp.ensembl.org/pub/release-107/gtf/equus_caballus/Equus_caballus.EquCab3.0.107.gtf.gz",
+        # 'Equus_caballus.EquCab3.0.107.gtf.gz': "http://ftp.ensembl.org/pub/release-107/gtf/equus_caballus/Equus_caballus.EquCab3.0.107.gtf.gz",
+        'Equus_caballus.EquCab3.0.113.gtf.gz': "https://ftp.ensembl.org/pub/release-113/gtf/equus_caballus/Equus_caballus.EquCab3.0.113.gtf.gz",
 
     },
 
@@ -33,7 +45,9 @@ RAW_DATA_INFO = {
         'vgnc_protein_coding_gene.txt': 'http://ftp.ebi.ac.uk/pub/databases/genenames/vgnc/tsv/all/locus_groups/all_protein-coding_gene_All.txt',
 
         # HUGO Gene Nomenclature Committee: match vertebrate ensembl gene id to human orthologous (ensembl + entrez + symbol)
-        'hgnc_protein_coding_gene.txt': 'http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/locus_groups/protein-coding_gene.txt',
+        # 'hgnc_protein_coding_gene.txt': 'http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/locus_groups/protein-coding_gene.txt',
+        'hgnc_protein_coding_gene.txt': 'https://storage.googleapis.com/public-download-files/hgnc/tsv/tsv/locus_groups/protein-coding_gene.txt',
+
 
         # Cow -  Bos taurus
         'bta_ensembl.txt': '\'http://www.ensembl.org/biomart/martservice?query=<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE Query><Query  virtualSchemaName = "default" formatter = "TSV" header = "0" uniqueRows = "0" count = "" datasetConfigVersion = "0.6" ><Dataset name = "btaurus_gene_ensembl" interface = "default" ><Attribute name = "ensembl_gene_id" /><Attribute name = "external_gene_name" /></Dataset></Query>\'',
